@@ -11,7 +11,7 @@ namespace Utils
         static void Main(string[] args)
         {
             var projectBaseName = "VBase Project";
-            var newProjectName = "VTex";
+            var newProjectName = "Samsung Cloud";
 
             string[] actualNames = { 
                 projectBaseName.Replace(" ", ""),
