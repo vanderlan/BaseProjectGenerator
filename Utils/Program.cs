@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Utils
@@ -9,14 +10,35 @@ namespace Utils
     {
         static void Main(string[] args)
         {
-            string actualName = "Invest";
-            string newName = "VAuthServer";
+            var projectBaseName = "VBase Project";
+            var newProjectName = "VTex";
 
-            RenameFolder(@"c:\Projeto\BaseProject", actualName, newName);
+            string[] actualNames = { 
+                projectBaseName.Replace(" ", ""),
+                projectBaseName.Replace(" ", "").ToLowerInvariant(),
+                projectBaseName
+            };
+            
+            string[] newNames = {
+                newProjectName.Replace(" ", ""), 
+                newProjectName.Replace(" ", "").ToLowerInvariant(), 
+                newProjectName
+            };
 
-            Task.Delay(100);
+            string rootDir = @"C:\Users\VanderlanGomes\source\repos\back-end-baseproject";
+            
+            string newDir = @"C:\Projects\"+ newNames[0];
 
-            AllFilesRename(@"c:\Projeto\BaseProject", actualName, newName);
+            DirectoryCopy(rootDir, newDir, true);
+
+            for (int i = 0; i < actualNames.Length; i++)
+            {
+                RenameFolder(newDir, actualNames[i], newNames[i]);
+                
+                Task.Delay(100);
+
+                AllFilesRename(newDir, actualNames[i], newNames[i]);
+            }
 
             Console.WriteLine("Completed");
         }
@@ -58,7 +80,6 @@ namespace Utils
 
                 if (onlyName.Contains(oldProjectName))
                 {
-                    var fullPath = rootDir + onlyName;
                     var newFullPath = rootDir + onlyName.Replace(oldProjectName, newProjectname);
 
                     File.Move(file, newFullPath);
@@ -70,14 +91,21 @@ namespace Utils
         {
             try
             {
-                foreach (string d in Directory.GetDirectories(sDir))
+                foreach (string file in Directory.GetFiles(sDir))
                 {
-                    foreach (string f in Directory.GetFiles(d))
+                    Console.WriteLine(file);
+                    ReplaceContent(file, oldProjectName, newProjectname);
+                }
+
+                foreach (string dir in Directory.GetDirectories(sDir))
+                {
+                    foreach (string file in Directory.GetFiles(dir))
                     {
-                        Console.WriteLine(f);
-                        ReplaceContent(f, oldProjectName, newProjectname);
+                        Console.WriteLine(file);
+                        ReplaceContent(file, oldProjectName, newProjectname);
                     }
-                    AllFilesRename(d, oldProjectName, newProjectname);
+
+                    AllFilesRename(dir, oldProjectName, newProjectname);
                 }
             }
             catch (Exception excpt)
@@ -88,6 +116,9 @@ namespace Utils
 
         private static void ReplaceContent(string file, string oldProjectName, string newProjectname)
         {
+            if (file.Contains(".git") || file.Contains(".vs"))
+                return;
+
             var fileContents = File.ReadAllText(file);
 
             if (fileContents.Contains(oldProjectName))
@@ -95,8 +126,40 @@ namespace Utils
                 fileContents = fileContents.Replace(oldProjectName, newProjectname);
 
                 File.WriteAllText(file, fileContents);
-
                 Console.WriteLine("{0} - Contentent replaced", file);
+            }
+        }
+
+        private static void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs)
+        {
+            string[] ignoreDirs = { ".vs", "bin", "Debug", "obj", ".git", "TestResults" };
+
+            var dir = new DirectoryInfo(sourceDirName);
+            DirectoryInfo[] dirs = dir.GetDirectories();
+
+            if (!Directory.Exists(destDirName))
+                Directory.CreateDirectory(destDirName);
+
+            FileInfo[] files = dir.GetFiles();
+
+            foreach (var file in files)
+            {
+                string temppath = Path.Combine(destDirName, file.Name);
+
+                file.CopyTo(temppath, false);
+            }
+
+            if (copySubDirs)
+            {
+                foreach (var subdir in dirs)
+                {
+                    if(!ignoreDirs.Contains(subdir.Name))
+                    {
+                        string temppath = Path.Combine(destDirName, subdir.Name);
+
+                        DirectoryCopy(subdir.FullName, temppath, copySubDirs);
+                    }
+                }
             }
         }
     }
