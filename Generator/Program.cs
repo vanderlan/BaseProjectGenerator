@@ -8,11 +8,13 @@ namespace Utils
 {
     class Program
     {
+        static readonly string newProjectName = "SNMP Adapter";
+
+        #region Code
         static void Main(string[] args)
         {
-            var projectBaseName = "VBase Project";
-            var newProjectName = "Samsung Cloud";
-
+            string projectBaseName = "VBase Project";
+            
             string[] actualNames = { 
                 projectBaseName.Replace(" ", ""),
                 projectBaseName.Replace(" ", "").ToLowerInvariant(),
@@ -162,5 +164,6 @@ namespace Utils
                 }
             }
         }
+        #endregion
     }
 }
