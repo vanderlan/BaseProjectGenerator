@@ -8,41 +8,44 @@ namespace Utils
 {
     class Program
     {
-        static readonly string newProjectName = "SNMP Adapter";
+        private static readonly string newProjectName = "Virtus Poker";
 
         #region Code
         static void Main(string[] args)
         {
-            string projectBaseName = "VBase Project";
-            
-            string[] actualNames = { 
-                projectBaseName.Replace(" ", ""),
-                projectBaseName.Replace(" ", "").ToLowerInvariant(),
-                projectBaseName
+            ReplaceAll("VBase Project", newProjectName);
+
+            Console.WriteLine("Completed");
+        }
+
+        private static void ReplaceAll(string oldName, string newName)
+        {
+            string[] actualNames = {
+                oldName.Replace(" ", ""),
+                oldName.Replace(" ", "").ToLowerInvariant(),
+                oldName
             };
-            
+
             string[] newNames = {
-                newProjectName.Replace(" ", ""), 
-                newProjectName.Replace(" ", "").ToLowerInvariant(), 
-                newProjectName
+                newName.Replace(" ", ""),
+                newName.Replace(" ", "").ToLowerInvariant(),
+                newName
             };
 
             string rootDir = @"C:\Users\VanderlanGomes\source\repos\back-end-baseproject";
-            
-            string newDir = @"C:\Projects\"+ newNames[0];
+
+            string newDir = @"C:\Projects\" + newNames[0];
 
             DirectoryCopy(rootDir, newDir, true);
 
             for (int i = 0; i < actualNames.Length; i++)
             {
                 RenameFolder(newDir, actualNames[i], newNames[i]);
-                
+
                 Task.Delay(100);
 
                 AllFilesRename(newDir, actualNames[i], newNames[i]);
             }
-
-            Console.WriteLine("Completed");
         }
 
         private static void RenameFolder(string dir, string oldName, string newName)
@@ -89,7 +92,7 @@ namespace Utils
             }
         }
 
-        static void AllFilesRename(string sDir, string oldProjectName, string newProjectname)
+        private static void AllFilesRename(string sDir, string oldProjectName, string newProjectname)
         {
             try
             {
@@ -155,7 +158,7 @@ namespace Utils
             {
                 foreach (var subdir in dirs)
                 {
-                    if(!ignoreDirs.Contains(subdir.Name))
+                    if (!ignoreDirs.Contains(subdir.Name))
                     {
                         string temppath = Path.Combine(destDirName, subdir.Name);
 
