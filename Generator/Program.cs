@@ -1,48 +1,89 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Net;
+using System.Threading;
 
-namespace Utils
+namespace Generator
 {
     class Program
     {
-        private static readonly string newProjectName = "Virtus Poker";
+        //New Project Info
+        private static string NewProjectName = "My Project Name";
+        private static string NewEntityBaseName = "EntityName";
+
+        #region VBase Project Info
+        private static readonly string ProjectBaseNameName = "VBase Project";
+        private static readonly string OldEntityBaseName = "Customer";
+        private static readonly string BaseProjectVersion = "1.0.0";
+        private static readonly ProjectSource ProjectSourceLocation = ProjectSource.GitRepository;
+        private static readonly string GitRepositoty = @"https://github.com/vanderlan/VBaseProject-NetCoreAPI";
+
+        //Only if the ProjectSourceLocation = ProjectSource.LocalFolder
+        private static string LocalDirectory = @"C:\Users\VanderlanGomes\source\repos\VBaseProject-NetCoreAPI";
+        #endregion
 
         #region Code
         static void Main(string[] args)
         {
-            ReplaceAll("VBase Project", newProjectName);
+            if(args.Length == 4)
+            {
+                NewProjectName = args[1];
+                NewEntityBaseName = args[3];
+            }
+
+            CloneRepository();
+
+            ReplaceAll(ProjectBaseNameName, NewProjectName, NewEntityBaseName);
 
             Console.WriteLine("Completed");
         }
 
-        private static void ReplaceAll(string oldName, string newName)
+        private static void CloneRepository()
+        {
+            if (ProjectSourceLocation == ProjectSource.GitRepository)
+            {
+                using var client = new WebClient();
+                var folderName = Guid.NewGuid().ToString();
+                var fileName = Guid.NewGuid().ToString() + ".zip";
+
+                client.DownloadFile($"{GitRepositoty}/archive/v{BaseProjectVersion}.zip", fileName);
+
+                ZipFile.ExtractToDirectory(fileName, folderName);
+
+                LocalDirectory = @$"{folderName}\VBaseProject-NetCoreAPI-{BaseProjectVersion}";
+            }
+        }
+
+        private static void ReplaceAll(string oldName, string newName, string newEntityBaseName)
         {
             string[] actualNames = {
                 oldName.Replace(" ", ""),
                 oldName.Replace(" ", "").ToLowerInvariant(),
-                oldName
+                oldName,
+
+                OldEntityBaseName
             };
 
             string[] newNames = {
                 newName.Replace(" ", ""),
                 newName.Replace(" ", "").ToLowerInvariant(),
-                newName
-            };
+                newName,
 
-            string rootDir = @"C:\Users\VanderlanGomes\source\repos\back-end-baseproject";
+                newEntityBaseName
+            };
 
             string newDir = @"C:\Projects\" + newNames[0];
 
-            DirectoryCopy(rootDir, newDir, true);
+            DirectoryCopy(LocalDirectory, newDir, true);
 
             for (int i = 0; i < actualNames.Length; i++)
             {
                 RenameFolder(newDir, actualNames[i], newNames[i]);
 
-                Task.Delay(100);
+                Thread.Sleep(100);
 
                 AllFilesRename(newDir, actualNames[i], newNames[i]);
             }
@@ -140,12 +181,12 @@ namespace Utils
             string[] ignoreDirs = { ".vs", "bin", "Debug", "obj", ".git", "TestResults" };
 
             var dir = new DirectoryInfo(sourceDirName);
-            DirectoryInfo[] dirs = dir.GetDirectories();
+            var dirs = dir.GetDirectories();
 
             if (!Directory.Exists(destDirName))
                 Directory.CreateDirectory(destDirName);
 
-            FileInfo[] files = dir.GetFiles();
+            var files = dir.GetFiles();
 
             foreach (var file in files)
             {
@@ -167,6 +208,7 @@ namespace Utils
                 }
             }
         }
+
         #endregion
     }
 }
